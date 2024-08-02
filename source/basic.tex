@@ -299,10 +299,10 @@ struct C {
   C() : s() { }
   C(const C& x): s(x.s) { }
   C(C&& x): s(static_cast<std::string&&>(x.s)) { }
-      @\rlap{\normalfont\itshape //}@    : s(std::move(x.s)) { }
+      @\rlap{\textnormal{\textit{//}}}@    : s(std::move(x.s)) { }
   C& operator=(const C& x) { s = x.s; return *this; }
   C& operator=(C&& x) { s = static_cast<std::string&&>(x.s); return *this; }
-      @\rlap{\normalfont\itshape //}@                { s = std::move(x.s); return *this; }
+      @\rlap{\textnormal{\textit{//}}}@                { s = std::move(x.s); return *this; }
   ~C() { }
 };
 \end{codeblock}
@@ -3811,7 +3811,7 @@ the result of the evaluation is the value so produced but is not erroneous:
     a discarded-value expression\iref{expr.context},
   \end{itemize}
   then the result of the operation is an indeterminate value or
-  that errorneous value, respectively.
+  that erroneous value, respectively.
 \item
   If an indeterminate or erroneous value of
   unsigned ordinary character type or \tcode{std::byte} type
@@ -5267,17 +5267,21 @@ can be queried using the facilities in the standard library headers
 A type \cv{}~\keyword{void}
 is an incomplete type that cannot be completed; such a type has
 an empty set of values. It is used as the return
-type for functions that do not return a value. Any expression can be
-explicitly converted to type
-\cv{}~\keyword{void}\iref{expr.type.conv,expr.static.cast,expr.cast}.
+type for functions that do not return a value.
 An expression of type \cv{}~\keyword{void} shall
-be used only as an expression statement\iref{stmt.expr}, as an operand
-of a comma expression\iref{expr.comma}, as a second or third operand
-of \tcode{?:}\iref{expr.cond}, as the operand of
-\keyword{typeid}, \keyword{noexcept}, or \keyword{decltype}, as
-the expression in a \keyword{return} statement\iref{stmt.return} for a function
-with the return type \cv{}~\keyword{void}, or as the operand of an explicit conversion
-to type \cv{}~\keyword{void}.
+be used only as
+\begin{itemize}
+\item an expression statement\iref{stmt.expr},
+\item the expression in a \keyword{return} statement\iref{stmt.return}
+for a function with the return type \cv{}~\keyword{void},
+\item an operand of a comma expression\iref{expr.comma},
+\item the second or third operand of \tcode{?:}\iref{expr.cond},
+\item the operand of a \keyword{typeid} expression\iref{expr.typeid},
+\item the operand of a \keyword{noexcept} operator\iref{expr.unary.noexcept},
+\item the operand of a \keyword{decltype} specifier\iref{dcl.type.decltype}, or
+\item the operand of an explicit conversion to type
+\cv{}~\keyword{void}\iref{expr.type.conv,expr.static.cast,expr.cast}.
+\end{itemize}
 
 \pnum
 The types denoted by \cv~\tcode{std::nullptr_t} are distinct types.
@@ -6537,8 +6541,8 @@ rules.
 
 \pnum
 \begin{note}
-Transformations that introduce a speculative read of a potentially
-shared memory location might not preserve the semantics of the \Cpp{} program as
+It is possible that transformations that introduce a speculative read of a potentially
+shared memory location do not preserve the semantics of the \Cpp{} program as
 defined in this document, since they potentially introduce a data race. However,
 they are typically valid in the context of an optimizing compiler that targets a
 specific machine with well-defined semantics for data races. They would be

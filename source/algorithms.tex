@@ -4551,11 +4551,15 @@ The type \tcode{Size}
 is convertible to an integral type\iref{conv.integral,class.conv}.
 
 \pnum
+Let $E$ be \tcode{pred(*(i + n), value) != false}
+for the overloads with a parameter \tcode{pred},
+and \tcode{*(i + n) == value} otherwise.
+
+\pnum
 \returns
 The first iterator \tcode{i} in the range \range{first}{last-count}
 such that for every non-negative integer \tcode{n} less than \tcode{count}
-the following corresponding conditions hold:
-\tcode{*(i + n) == value, pred(*(i + n), value) != false}.
+the condition $E$ is true.
 Returns \tcode{last} if no such iterator is found.
 
 \pnum
@@ -5562,14 +5566,12 @@ of the corresponding predicate and any projection.
 \indexlibraryglobal{replace_copy}%
 \indexlibraryglobal{replace_copy_if}%
 \begin{itemdecl}
-template<class InputIterator, class OutputIterator,
-         class T = iterator_traits<OutputIterator>::value_type>
+template<class InputIterator, class OutputIterator, class T>
   constexpr OutputIterator
     replace_copy(InputIterator first, InputIterator last,
                  OutputIterator result,
                  const T& old_value, const T& new_value);
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2,
-         class T = iterator_traits<ForwardIterator2>::value_type>
+template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class T>
   ForwardIterator2
     replace_copy(ExecutionPolicy&& exec,
                  ForwardIterator1 first, ForwardIterator1 last,

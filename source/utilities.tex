@@ -6215,13 +6215,13 @@ template<class R, class Visitor, class... Variants>
 Let \exposid{as-variant} denote the following exposition-only function templates:
 \begin{codeblock}
 template<class... Ts>
-  auto&& @\exposid{as-variant}@(variant<Ts...>& var) { return var; }
+  constexpr auto&& @\exposid{as-variant}@(variant<Ts...>& var) { return var; }
 template<class... Ts>
-  auto&& @\exposid{as-variant}@(const variant<Ts...>& var) { return var; }
+  constexpr auto&& @\exposid{as-variant}@(const variant<Ts...>& var) { return var; }
 template<class... Ts>
-  auto&& @\exposid{as-variant}@(variant<Ts...>&& var) { return std::move(var); }
+  constexpr auto&& @\exposid{as-variant}@(variant<Ts...>&& var) { return std::move(var); }
 template<class... Ts>
-  auto&& @\exposid{as-variant}@(const variant<Ts...>&& var) { return std::move(var); }
+  constexpr auto&& @\exposid{as-variant}@(const variant<Ts...>&& var) { return std::move(var); }
 \end{codeblock}
 Let $n$ be \tcode{sizeof...(Variants)}.
 For each $0 \leq i < n$, let
@@ -10829,6 +10829,25 @@ namespace std {
     struct greater_equal;                                                           // freestanding
     struct less_equal;                                                              // freestanding
   }
+
+  template<class Fn, class... Args>
+    concept @\defexposconceptnc{callable}@ =                                                  // \expos
+      requires (Fn&& fn, Args&&... args) {
+        std::forward<Fn>(fn)(std::forward<Args>(args)...);
+      };
+
+  template<class Fn, class... Args>
+    concept @\defexposconceptnc{nothrow-callable}@ =                                          // \expos
+      @\exposconcept{callable}@<Fn, Args...> &&
+      requires (Fn&& fn, Args&&... args) {
+        { std::forward<Fn>(fn)(std::forward<Args>(args)...) } noexcept;
+      };
+
+  template<class Fn, class... Args>
+    using @\exposidnc{call-result-t}@ = decltype(declval<Fn>()(declval<Args>()...));  // \expos
+
+  template<const auto& T>
+    using @\exposidnc{decayed-typeof}@ = decltype(auto(T));                           // \expos
 }
 \end{codeblock}
 
@@ -14810,8 +14829,8 @@ boyer_moore_searcher(RandomAccessIterator1 pat_first,
 \expects
 The value type of \tcode{RandomAccessIterator1} meets
 the \oldconcept{DefaultConstructible},
-the \oldconcept{Copy\-Constructible}, and
-the \oldconcept{CopyAssignable} requirements.
+\oldconcept{CopyConstructible}, and
+\oldconcept{CopyAssignable} requirements.
 
 \pnum
 Let \tcode{V} be \tcode{iterator_traits<RandomAccessIterator1>::val\-ue_type}.
@@ -15205,6 +15224,7 @@ Subclause~\ref{execpol} describes classes that are \defn{execution policy} types
 object of an execution policy type indicates the kinds of parallelism allowed
 in the execution of an algorithm and expresses the consequent requirements on
 the element access functions.
+Execution policy types are declared in header \libheaderref{execution}.
 \begin{example}
 \begin{codeblock}
 using namespace std;
@@ -15229,37 +15249,6 @@ to those described in this document as extensions
 to address parallel architectures that require idiosyncratic
 parameters for efficient execution.
 \end{note}
-
-\rSec2[execution.syn]{Header \tcode{<execution>} synopsis}
-
-\indexheader{execution}%
-\begin{codeblock}
-namespace std {
-  // \ref{execpol.type}, execution policy type trait
-  template<class T> struct is_execution_policy;
-  template<class T> constexpr bool @\libglobal{is_execution_policy_v}@ = is_execution_policy<T>::value;
-}
-
-namespace std::execution {
-  // \ref{execpol.seq}, sequenced execution policy
-  class sequenced_policy;
-
-  // \ref{execpol.par}, parallel execution policy
-  class parallel_policy;
-
-  // \ref{execpol.parunseq}, parallel and unsequenced execution policy
-  class parallel_unsequenced_policy;
-
-  // \ref{execpol.unseq}, unsequenced execution policy
-  class unsequenced_policy;
-
-  // \ref{execpol.objects}, execution policy objects
-  inline constexpr sequenced_policy            seq{ @\unspec@ };
-  inline constexpr parallel_policy             par{ @\unspec@ };
-  inline constexpr parallel_unsequenced_policy par_unseq{ @\unspec@ };
-  inline constexpr unsequenced_policy          unseq{ @\unspec@ };
-}
-\end{codeblock}
 
 \rSec2[execpol.type]{Execution policy type trait}
 
@@ -15390,7 +15379,7 @@ inline constexpr execution::unsequenced_policy          execution::unseq{ @\unsp
 
 \begin{itemdescr}
 \pnum
-The header \libheader{execution} declares global objects associated with each type of execution policy.
+The header \libheaderref{execution} declares global objects associated with each type of execution policy.
 \end{itemdescr}
 
 \rSec1[charconv]{Primitive numeric conversions}

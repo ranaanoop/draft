@@ -43,10 +43,11 @@ Detailed specifications for each of the components in the library are in
 \ref{input.output}      & Input/output library        \\
 \ref{re}                & Regular expressions library \\
 \ref{thread}            & Concurrency support library \\
+\ref{exec}              & Execution control library   \\
 \end{floattable}
 
 \pnum
-The operating system interface described in \IsoPosixUndated{}:2009 is
+The operating system interface described in \IsoPosix{} is
 hereinafter called \defn{POSIX}.
 
 \pnum
@@ -129,6 +130,10 @@ The concurrency support library\iref{thread} provides components to create
 and manage threads,
 including atomic operations, mutual exclusion, and interthread communication.
 
+\pnum
+The execution control library\iref{exec} provides components
+supporting execution of function objects.
+
 \rSec1[library.c]{The C standard library}
 
 \pnum
@@ -161,7 +166,7 @@ See also \IsoC{}, 7.6.
 to the extent applicable to the floating-point types\iref{basic.fundamental}
 that are parameter types of the called function.
 \begin{note}
-Annex F specifies
+\IsoC{}, Annex F specifies
 the conditions under which floating-point exceptions are raised and
 the behavior when NaNs and/or infinities are passed as arguments.
 \end{note}
@@ -389,7 +394,7 @@ established by the function.
 \result
 for a \grammarterm{typename-specifier}, a description of the named type;
 for an \grammarterm{expression},
-a description of the type of the expression;
+a description of the type and value category of the expression;
 the expression is an lvalue if the type is an lvalue reference type,
 an xvalue if the type is an rvalue reference type, and
 a prvalue otherwise.
@@ -524,6 +529,14 @@ namespace std {
     decltype(@\placeholdernc{synth-three-way}@(declval<T&>(), declval<U&>()));
 }
 \end{codeblock}
+
+\pnum
+An object \tcode{dst} is said to be \defn{decay-copied from}
+a subexpression \tcode{src}
+if the type of \tcode{dst} is
+\begin{codeblock}
+decay_t<decltype((src))>
+\end{codeblock} and \tcode{dst} is copy-initialized from \tcode{src}.
 
 \rSec3[type.descriptions]{Type descriptions}
 
@@ -1508,7 +1521,7 @@ include at least the headers shown in \tref{headers.cpp.fs}.
 \ref{support.limits}     & Implementation properties &
   \tcode{<cfloat>}, \tcode{<climits>}, \tcode{<limits>}, \\
                          &                           & \tcode{<version>}          \\ \rowsep
-\ref{cstdint.syn}        & Integer types             & \tcode{<cstdint>}   \\ \rowsep
+\ref{cstdint.syn}        & Integer types             & \tcode{<cstdint>}          \\ \rowsep
 \ref{support.dynamic}    & Dynamic memory management & \tcode{<new>}              \\ \rowsep
 \ref{support.rtti}       & Type identification       & \tcode{<typeinfo>}         \\ \rowsep
 \ref{support.srcloc}     & Source location           & \tcode{<source_location>}  \\ \rowsep
@@ -1535,8 +1548,8 @@ include at least the headers shown in \tref{headers.cpp.fs}.
 \ref{string.view}        & String view classes       & \tcode{<string_view>}      \\ \rowsep
 \ref{string.classes}     & String classes            & \tcode{<string>}           \\ \rowsep
 \ref{c.strings}          & Null-terminated sequence utilities & \tcode{<cstring>}, \tcode{<cwchar>} \\ \rowsep
-\ref{containers}         & Containers library        & \tcode{<inplace_vector>}   \\ \rowsep
 \ref{array}              & Class template \tcode{array} & \tcode{<array>}         \\ \rowsep
+\ref{inplace.vector}     & Class template \tcode{inplace_vector} & \tcode{<inplace_vector>} \\ \rowsep
 \ref{views.contiguous}   & Contiguous access         & \tcode{<span>}             \\ \rowsep
 \ref{views.multidim}     & Multidimensional access   & \tcode{<mdspan>}           \\ \rowsep
 \ref{iterators}          & Iterators library         & \tcode{<iterator>}         \\ \rowsep
@@ -2851,6 +2864,22 @@ struct SimpleAllocator {
 };
 \end{codeblock}
 \end{example}
+
+\pnum
+The following exposition-only concept defines
+the minimal requirements on an Allocator type.
+\begin{codeblock}
+template<class Alloc>
+concept @\defexposconcept{simple-allocator}@ =
+  requires(Alloc alloc, size_t n) {
+    { *alloc.allocate(n) } -> @\libconcept{same_as}@<typename Alloc::value_type&>;
+    { alloc.deallocate(alloc.allocate(n), n) };
+  } &&
+  @\libconcept{copy_constructible}@<Alloc> &&
+  @\libconcept{equality_comparable}@<Alloc>;
+\end{codeblock}
+A type \tcode{Alloc} models \exposconcept{simple-allocator}
+if it meets the requirements of \ref{allocator.requirements.general}.
 
 \rSec4[allocator.requirements.completeness]{Allocator completeness requirements}
 
